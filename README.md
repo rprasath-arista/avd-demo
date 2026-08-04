@@ -2,6 +2,21 @@
 
 Arista Validated Design (AVD) demo for deploying and managing a DC1 leaf-spine fabric via CloudVision Portal (CVP).
 
+## Design Type
+
+**Data Center (DC) — EVPN/VXLAN Leaf-Spine Fabric**
+
+| Attribute | Value |
+|-----------|-------|
+| Design Model | Layer 3 Leaf-Spine |
+| Underlay Routing | eBGP |
+| Overlay Routing | eBGP |
+| Overlay Technology | VXLAN with VLAN-Aware Bundles |
+| High Availability | MLAG on L3 Leaf pairs |
+| Platform | vEOS-LAB |
+| Management | CloudVision Portal (CVP) |
+| Validation | ANTA via AVD |
+
 ## Topology
 
 - **2 Spines:** DC1-SPINE1, DC1-SPINE2
