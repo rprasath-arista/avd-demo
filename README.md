@@ -37,6 +37,121 @@ make reset
 | `make anta-validate` | Run standalone ANTA NRFU tests against the fabric |
 | `make anta-validate-json` | Run ANTA NRFU and output JSON report |
 
+## Day 2 Operations
+
+All Day 2 changes follow the same workflow: **edit YAML** → `make build` → `make provision` → `make deploy` → `make validate`.
+
+### Add a New VLAN/SVI
+
+Edit `group_vars/DC1_TENANTS_NETWORKS.yml` — add an SVI under the target VRF:
+
+```yaml
+- id: 170
+  name: Tenant_A_NEW_VLAN
+  tags: [opzone]
+  enabled: true
+  ip_address_virtual: 10.1.70.1/24
+```
+
+### Add a New VRF
+
+Edit `group_vars/DC1_TENANTS_NETWORKS.yml` — add under the tenant's `vrfs` list:
+
+```yaml
+- name: Tenant_A_DMZ_Zone
+  vrf_vni: 15
+  svis:
+    - id: 180
+      name: Tenant_A_DMZ_1
+      tags: [dmz]
+      enabled: true
+      ip_address_virtual: 10.1.80.1/24
+```
+
+### Add a New Tenant
+
+Edit `group_vars/DC1_TENANTS_NETWORKS.yml` — add a new entry to the `tenants` list:
+
+```yaml
+- name: Tenant_D
+  mac_vrf_vni_base: 40000
+  vrfs:
+    - name: Tenant_D_OP_Zone
+      vrf_vni: 40
+      svis:
+        - id: 410
+          name: Tenant_D_OP_Zone_1
+          tags: [opzone]
+          enabled: true
+          ip_address_virtual: 10.4.10.1/24
+```
+
+### Add a New Leaf Pair
+
+1. Edit `inventory.yml` — add hosts under `DC1_L3LEAFS`:
+
+```yaml
+DC1_LEAF3:
+  hosts:
+    DC1-LEAF3A:
+      ansible_host: 10.255.0.19
+    DC1-LEAF3B:
+      ansible_host: 10.255.0.20
+```
+
+2. Edit `group_vars/DC1_FABRIC.yml` — add a node group under `l3leaf.node_groups`:
+
+```yaml
+- group: DC1_LEAF3
+  bgp_as: "65103"
+  nodes:
+    - name: DC1-LEAF3A
+      id: 5
+      mgmt_ip: 10.255.0.19/24
+      uplink_switch_interfaces: [Ethernet5, Ethernet5]
+    - name: DC1-LEAF3B
+      id: 6
+      mgmt_ip: 10.255.0.20/24
+      uplink_switch_interfaces: [Ethernet6, Ethernet6]
+```
+
+3. Update `anta/inventory.yml` with the new devices.
+
+### Connect a New Server
+
+Edit `group_vars/DC1_SERVERS.yml` — add under `servers`:
+
+```yaml
+- name: server03
+  rack: RackB
+  adapters:
+    - endpoint_ports: [Eth0]
+      switch_ports: [Ethernet6]
+      switches: [DC1-LEAF2A]
+      profile: TENANT_A
+```
+
+### Add a New Port Profile
+
+Edit `group_vars/DC1_SERVERS.yml` — add under `port_profiles`:
+
+```yaml
+- profile: TENANT_C
+  mode: trunk
+  vlans: "310-311"
+```
+
+### Deploy Changes
+
+After any edit:
+
+```bash
+make build          # generate new configs
+make provision      # push to CVP (review in Change Control)
+make deploy         # execute on devices
+make anta-validate  # verify fabric state
+```
+
 ## Design Type
 
 **Data Center (DC) — EVPN/VXLAN Leaf-Spine Fabric**
