@@ -15,7 +15,7 @@ Arista Validated Design (AVD) demo for deploying and managing a DC1 leaf-spine f
 | High Availability | MLAG on L3 Leaf pairs |
 | Platform | vEOS-LAB |
 | Management | CloudVision Portal (CVP) |
-| Validation | ANTA via AVD |
+| Validation | ANTA (standalone + AVD integrated) |
 
 ## Topology
 
@@ -36,6 +36,9 @@ Arista Validated Design (AVD) demo for deploying and managing a DC1 leaf-spine f
 │   ├── DC1_FABRIC.yml       # Fabric design (BGP, MLAG, interfaces)
 │   ├── DC1_SERVERS.yml      # Server-facing port profiles
 │   └── DC1_TENANTS_NETWORKS.yml  # VRFs, VLANs, SVIs
+├── anta/
+│   ├── inventory.yml        # ANTA device inventory (standalone)
+│   └── catalog.yml          # ANTA test catalog
 ├── playbooks/
 │   ├── dc1-fabric-deploy-cvp.yml   # Build + deploy configs via CVP
 │   ├── dc1-fabric-reset-cvp.yml    # Reset fabric on CVP
@@ -64,10 +67,62 @@ make validate
 make reset
 ```
 
+## ANTA — Standalone Validation
+
+ANTA (Arista Network Test Automation) is also set up as a standalone tool for direct device testing outside of Ansible.
+
+### Install
+
+```bash
+pip install anta
+```
+
+### Run Tests
+
+```bash
+# Full NRFU table report
+make anta-validate
+
+# JSON report (saved to anta/results.json)
+make anta-validate-json
+
+# Filter by device
+anta nrfu -u ansible -p ansible --enable --insecure \
+  -i anta/inventory.yml -c anta/catalog.yml \
+  --device DC1-SPINE1 table
+
+# Filter by tag (e.g. only L3 leafs, only MLAG devices)
+anta nrfu -u ansible -p ansible --enable --insecure \
+  -i anta/inventory.yml -c anta/catalog.yml \
+  --tags l3leaf table
+
+# Show only failures
+anta nrfu -u ansible -p ansible --enable --insecure \
+  -i anta/inventory.yml -c anta/catalog.yml \
+  --hide success table
+```
+
+### Test Coverage
+
+| Category | Tests | Scope |
+|----------|-------|-------|
+| System | Uptime, reload cause, coredump, CPU, memory, NTP | All devices |
+| Hardware | Temperature, transceivers, cooling, power | All devices |
+| Configuration | Zero-touch, running-config diffs | All devices |
+| Interfaces | Errors, discards, err-disabled, storm control | All devices |
+| STP | MSTP mode, blocked ports, counters | Leafs |
+| MLAG | Status, interfaces, config sanity | MLAG pairs |
+| BGP | Peer count, peer health (underlay + EVPN overlay) | Spines + L3 leafs |
+| Routing | Multi-agent model, loopback reachability | Spines + L3 leafs |
+| VXLAN | Vxlan1 interface, config sanity, VTEP peers | L3 leafs |
+| BFD | Peer health | All devices |
+| Security | SSH, telnet, HTTP API status | All devices |
+
 ## Requirements
 
 - Python 3.x
 - Ansible
 - [arista.avd](https://avd.arista.com/) collection
 - [arista.cvp](https://cvp.avd.sh/) collection
+- [anta](https://anta.arista.com/) for standalone validation
 - Access to CVP instance and EOS devices

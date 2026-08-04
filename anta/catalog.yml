@@ -1,0 +1,200 @@
+---
+# ANTA Test Catalog — DC1 EVPN/VXLAN Leaf-Spine Fabric
+
+# ── System Health ──
+anta.tests.system:
+  - VerifyUptime:
+      minimum: 86400
+  - VerifyReloadCause:
+  - VerifyCoredump:
+  - VerifyAgentLogs:
+  - VerifyCPUUtilization:
+  - VerifyMemoryUtilization:
+  - VerifyFileSystemUtilization:
+  - VerifyNTP:
+
+# ── Hardware ──
+anta.tests.hardware:
+  - VerifyTemperature:
+  - VerifyTransceiversTemperature:
+  - VerifyEnvironmentCooling:
+      states:
+        - ok
+  - VerifyEnvironmentPower:
+      states:
+        - ok
+
+# ── Configuration ──
+anta.tests.configuration:
+  - VerifyZeroTouch:
+  - VerifyRunningConfigDiffs:
+
+# ── Interfaces ──
+anta.tests.interfaces:
+  - VerifyInterfaceUtilization:
+  - VerifyInterfaceErrors:
+  - VerifyInterfaceDiscards:
+  - VerifyInterfaceErrDisabled:
+  - VerifyStormControlDrops:
+
+# ── STP (MSTP) ──
+anta.tests.stp:
+  - VerifySTPMode:
+      mode: mstp
+      vlans:
+        - 110
+        - 111
+        - 112
+        - 120
+        - 121
+        - 130
+        - 131
+        - 140
+        - 141
+        - 150
+        - 160
+        - 161
+        - 210
+        - 211
+        - 250
+        - 310
+        - 311
+        - 350
+      filters:
+        tags: ['leaf']
+  - VerifySTPBlockedPorts:
+  - VerifySTPCounters:
+
+# ── MLAG ──
+anta.tests.mlag:
+  - VerifyMlagStatus:
+      filters:
+        tags: ['mlag']
+  - VerifyMlagInterfaces:
+      filters:
+        tags: ['mlag']
+  - VerifyMlagConfigSanity:
+      filters:
+        tags: ['mlag']
+
+# ── BGP — Underlay + Overlay ──
+anta.tests.routing.bgp:
+  # Spine: 4 IPv4 underlay peers (one per L3 leaf)
+  - VerifyBGPPeerCount:
+      address_families:
+        - afi: ipv4
+          safi: unicast
+          vrf: default
+          num_peers: 4
+      filters:
+        tags: ['spine']
+
+  # L3 Leaf: 2 spine uplinks + 1 MLAG iBGP peer
+  - VerifyBGPPeerCount:
+      address_families:
+        - afi: ipv4
+          safi: unicast
+          vrf: default
+          num_peers: 3
+      filters:
+        tags: ['l3leaf']
+
+  # Spine: 4 EVPN overlay peers
+  - VerifyBGPPeerCount:
+      address_families:
+        - afi: evpn
+          num_peers: 4
+      filters:
+        tags: ['spine']
+
+  # L3 Leaf: 2 EVPN overlay peers (to each spine)
+  - VerifyBGPPeerCount:
+      address_families:
+        - afi: evpn
+          num_peers: 2
+      filters:
+        tags: ['l3leaf']
+
+  # All BGP sessions healthy
+  - VerifyBGPPeersHealth:
+      address_families:
+        - afi: ipv4
+          safi: unicast
+          vrf: default
+        - afi: evpn
+      filters:
+        tags: ['spine', 'l3leaf']
+
+# ── Routing ──
+anta.tests.routing.generic:
+  - VerifyRoutingProtocolModel:
+      model: multi-agent
+
+  - VerifyRoutingTableSize:
+      minimum: 2
+      maximum: 500
+
+  # Verify all loopback routes are present
+  - VerifyIPv4RoutePresencePerPrefix:
+      route_entries:
+        - prefix: 192.168.255.1/32
+          vrf: default
+        - prefix: 192.168.255.2/32
+          vrf: default
+        - prefix: 192.168.255.3/32
+          vrf: default
+        - prefix: 192.168.255.4/32
+          vrf: default
+        - prefix: 192.168.255.5/32
+          vrf: default
+        - prefix: 192.168.255.6/32
+          vrf: default
+      filters:
+        tags: ['spine', 'l3leaf']
+
+# ── VXLAN ──
+anta.tests.vxlan:
+  - VerifyVxlan1Interface:
+      filters:
+        tags: ['l3leaf']
+
+  - VerifyVxlan1ConnSettings:
+      source_interface: Loopback1
+      udp_port: 4789
+      filters:
+        tags: ['l3leaf']
+
+  - VerifyVxlanConfigSanity:
+      filters:
+        tags: ['l3leaf']
+
+  # Each L3 leaf should see the other MLAG VTEP pair
+  - VerifyVxlanVtep:
+      vteps:
+        - 192.168.254.3
+        - 192.168.254.5
+      filters:
+        tags: ['l3leaf']
+
+# ── BFD ──
+anta.tests.bfd:
+  - VerifyBFDPeersHealth:
+
+# ── Connectivity ──
+anta.tests.connectivity:
+  - VerifyReachability:
+      hosts:
+        - source: Management1
+          destination: 10.255.0.1
+          vrf: MGMT
+
+# ── Logging ──
+anta.tests.logging:
+  - VerifySyslogLogging:
+  - VerifyLoggingErrors:
+
+# ── Security ──
+anta.tests.security:
+  - VerifySSHStatus:
+  - VerifyTelnetStatus:
+  - VerifyAPIHttpStatus:

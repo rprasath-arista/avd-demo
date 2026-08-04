@@ -23,3 +23,11 @@ validate: ## Run ANTA fabric validation via AVD
 .PHONY: reset
 reset: ## Reset fabric on CVP (remove configlets/containers)
 	$(ANSIBLE_PLAYBOOK) playbooks/dc1-fabric-reset-cvp.yml
+
+.PHONY: anta-validate
+anta-validate: ## Run standalone ANTA NRFU tests against the fabric
+	anta nrfu -u ansible -p ansible --enable --insecure -i anta/inventory.yml -c anta/catalog.yml table
+
+.PHONY: anta-validate-json
+anta-validate-json: ## Run ANTA NRFU and output JSON report
+	anta nrfu -u ansible -p ansible --enable --insecure -i anta/inventory.yml -c anta/catalog.yml json --output anta/results.json
