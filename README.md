@@ -2,6 +2,28 @@
 
 Arista Validated Design (AVD) demo for deploying and managing a DC1 leaf-spine fabric via CloudVision Portal (CVP).
 
+## Quick Start
+
+```bash
+# Generate configs only
+make build
+
+# Push configlets to CVP (no execution)
+make provision
+
+# Full deploy: build + provision + execute tasks
+make deploy
+
+# Validate fabric state (via AVD/Ansible)
+make validate
+
+# Validate fabric state (standalone ANTA)
+make anta-validate
+
+# Reset fabric on CVP
+make reset
+```
+
 ## Design Type
 
 **Data Center (DC) — EVPN/VXLAN Leaf-Spine Fabric**
@@ -46,25 +68,6 @@ Arista Validated Design (AVD) demo for deploying and managing a DC1 leaf-spine f
 └── demo/scripts/
     ├── reset_cvp.py         # CVP reset helper
     └── validate_fabric.py   # Fabric validation helper
-```
-
-## Quick Start
-
-```bash
-# Generate configs only
-make build
-
-# Push configlets to CVP (no execution)
-make provision
-
-# Full deploy: build + provision + execute tasks
-make deploy
-
-# Validate fabric state
-make validate
-
-# Reset fabric on CVP
-make reset
 ```
 
 ## ANTA — Standalone Validation
