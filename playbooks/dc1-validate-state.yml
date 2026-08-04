@@ -1,0 +1,8 @@
+---
+- name: Validate DC1 Fabric State with ANTA
+  hosts: DC1_FABRIC
+  gather_facts: false
+  tasks:
+    - name: Validate fabric state
+      ansible.builtin.import_role:
+        name: arista.avd.eos_validate_state
