@@ -24,6 +24,19 @@ make anta-validate
 make reset
 ```
 
+## Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `make help` | Display all available commands |
+| `make build` | Generate EOS intended configurations and documentation |
+| `make provision` | Push configlets and containers to CVP (no task execution) |
+| `make deploy` | Full deploy: build + provision + execute tasks on CVP |
+| `make validate` | Run ANTA fabric validation via AVD |
+| `make reset` | Reset fabric on CVP (remove configlets/containers) |
+| `make anta-validate` | Run standalone ANTA NRFU tests against the fabric |
+| `make anta-validate-json` | Run ANTA NRFU and output JSON report |
+
 ## Design Type
 
 **Data Center (DC) — EVPN/VXLAN Leaf-Spine Fabric**
